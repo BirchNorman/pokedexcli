@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func startRepl() {
+func startRepl(cfg *config) error {
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Print("\nPokedex > ")
@@ -19,7 +19,7 @@ func startRepl() {
 			fmt.Fprintln(os.Stderr, "reading standard input:", err)
 		}
 		command := cleanInput(userInput)[0]
-		register(command)
+		register(command, cfg)
 		// fmt.Printf("Your command was: %s\n", cleanedInput)
 	}
 }
@@ -32,6 +32,41 @@ func cleanInput(text string) []string {
 		wordsToLower = append(wordsToLower, wordToLower)
 	}
 	return wordsToLower
+}
+
+func register(command string, cfg *config) {
+	unknown := true
+	for _, c := range cfg.commands {
+		if c.name == command {
+			c.callback(cfg)
+			unknown = false
+			break
+		}
+	}
+	if unknown == true {
+		fmt.Println("Unknown command")
+	}
+}
+
+func commandExit(cfg *config) error {
+	fmt.Println("Closing the Pokedex... Goodbye!")
+	os.Exit(0)
+	return nil
+}
+
+func commandHelp(cfg *config) error {
+	var usage strings.Builder
+	for _, c := range cfg.commands {
+		usage.WriteString("\n" + c.name + ": " + c.description)
+	}
+	fmt.Printf("Welcome to the Pokedex!\nUsage:\n%s", usage.String())
+	return nil
+}
+
+type cliCommand struct {
+	name        string
+	description string
+	callback    func(*config) error
 }
 
 func getCommands() map[string]cliCommand {
@@ -49,39 +84,6 @@ func getCommands() map[string]cliCommand {
 	}
 }
 
-func register(command string) {
-	unknown := true
-	commands := getCommands()
-	for _, c := range commands {
-		if c.name == command {
-			c.callback()
-			unknown = false
-			break
-		}
-	}
-	if unknown == true {
-		fmt.Println("Unknown command")
-	}
-}
-
-func commandExit() error {
-	fmt.Println("Closing the Pokedex... Goodbye!")
-	os.Exit(0)
-	return nil
-}
-
-type cliCommand struct {
-	name        string
-	description string
-	callback    func() error
-}
-
-func commandHelp() error {
-	commands := getCommands()
-	var usage strings.Builder
-	for _, c := range commands {
-		usage.WriteString("\n" + c.name + ": " + c.description)
-	}
-	fmt.Printf("Welcome to the Pokedex!\nUsage:\n%s", usage.String())
-	return nil
+type config struct {
+	commands map[string]cliCommand
 }
