@@ -5,7 +5,16 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/BirchNorman/pokedexcli/internal/pokeapi"
 )
+
+type config struct {
+	commands      map[string]cliCommand
+	pokeapiClient pokeapi.Client
+	next          *string
+	prev          *string
+}
 
 func startRepl(cfg *config) error {
 	scanner := bufio.NewScanner(os.Stdin)
@@ -20,7 +29,6 @@ func startRepl(cfg *config) error {
 		}
 		command := cleanInput(userInput)[0]
 		register(command, cfg)
-		// fmt.Printf("Your command was: %s\n", cleanedInput)
 	}
 }
 
@@ -48,21 +56,6 @@ func register(command string, cfg *config) {
 	}
 }
 
-func commandExit(cfg *config) error {
-	fmt.Println("Closing the Pokedex... Goodbye!")
-	os.Exit(0)
-	return nil
-}
-
-func commandHelp(cfg *config) error {
-	var usage strings.Builder
-	for _, c := range cfg.commands {
-		usage.WriteString("\n" + c.name + ": " + c.description)
-	}
-	fmt.Printf("Welcome to the Pokedex!\nUsage:\n%s", usage.String())
-	return nil
-}
-
 type cliCommand struct {
 	name        string
 	description string
@@ -81,9 +74,15 @@ func getCommands() map[string]cliCommand {
 			description: "Displays a help message",
 			callback:    commandHelp,
 		},
+		"map": {
+			name:        "map",
+			description: "Displays the next 20 location areas.",
+			callback:    commandMap,
+		},
+		"mapb": {
+			name:        "mapb",
+			description: "Displays the previous 20 location areas.",
+			callback:    commandMapb,
+		},
 	}
-}
-
-type config struct {
-	commands map[string]cliCommand
 }
