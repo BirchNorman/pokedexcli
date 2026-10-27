@@ -6,13 +6,13 @@ import (
 	"strings"
 )
 
-func commandExit(cfg *config) error {
+func commandExit(cfg *config, parameter string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp(cfg *config) error {
+func commandHelp(cfg *config, parameter string) error {
 	var usage strings.Builder
 	for _, c := range cfg.commands {
 		fmt.Fprintf(&usage, "\n%s: %s", c.name, c.description)
@@ -21,7 +21,7 @@ func commandHelp(cfg *config) error {
 	return nil
 }
 
-func commandMap(cfg *config) error {
+func commandMap(cfg *config, parameter string) error {
 	res, err := cfg.pokeapiClient.ListLocationAreas(cfg.next)
 	if err != nil {
 		return err
@@ -35,7 +35,7 @@ func commandMap(cfg *config) error {
 	return nil
 }
 
-func commandMapb(cfg *config) error {
+func commandMapb(cfg *config, parameter string) error {
 	if cfg.prev == nil {
 		fmt.Println("you're on the first page")
 	}
@@ -48,6 +48,21 @@ func commandMapb(cfg *config) error {
 
 	for _, locationArea := range res.Results {
 		fmt.Println(locationArea.Name)
+	}
+	return nil
+}
+
+func commandExplore(cfg *config, parameter string) error {
+	area_name := parameter // nil
+
+	PokemonList, err := cfg.pokeapiClient.ListPokemon(area_name)
+	if err != nil {
+		return err
+	}
+
+	for _, Pokemon := range PokemonList.PokemonEncountersField {
+		fmt.Printf("\n- %s", Pokemon.Pokemon.Name)
+
 	}
 	return nil
 }

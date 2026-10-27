@@ -31,7 +31,7 @@ func (cache *Cache) Add(key string, val []byte) {
 	cache.mutex.Lock()
 	defer cache.mutex.Unlock()
 	entry := cacheEntry{
-		createdAt: time.Now(), // time only?
+		createdAt: time.Now(),
 		value:     val,
 	}
 	cache.entries[key] = entry

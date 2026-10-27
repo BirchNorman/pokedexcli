@@ -29,8 +29,13 @@ func startRepl(cfg *config) error {
 		if err := scanner.Err(); err != nil {
 			fmt.Fprintln(os.Stderr, "reading standard input:", err)
 		}
-		command := cleanInput(userInput)[0]
-		register(command, cfg)
+		cleanedInput := cleanInput(userInput)
+		command := cleanedInput[0]
+		parameter := "" // list
+		if len(cleanedInput) > 1 {
+			parameter = cleanedInput[1]
+		}
+		register(command, parameter, cfg)
 	}
 }
 
@@ -44,11 +49,11 @@ func cleanInput(text string) []string {
 	return wordsToLower
 }
 
-func register(command string, cfg *config) {
+func register(command string, parameter string, cfg *config) {
 	unknown := true
 	for _, c := range cfg.commands {
 		if c.name == command {
-			c.callback(cfg)
+			c.callback(cfg, parameter)
 			unknown = false
 			break
 		}
@@ -61,7 +66,7 @@ func register(command string, cfg *config) {
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*config) error
+	callback    func(*config, string) error
 }
 
 func getCommands() map[string]cliCommand {
@@ -85,6 +90,11 @@ func getCommands() map[string]cliCommand {
 			name:        "mapb",
 			description: "Displays the previous 20 location areas.",
 			callback:    commandMapb,
+		},
+		"explore": {
+			name:        "explore",
+			description: "Display the names of all Pokémon found in that area.",
+			callback:    commandExplore,
 		},
 	}
 }
