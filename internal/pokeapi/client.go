@@ -5,19 +5,21 @@ import (
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/BirchNorman/pokedexcli/internal/pokecache"
 )
 
-// Client -
 type Client struct {
 	httpClient http.Client
+	cache      *pokecache.Cache
 }
 
-// NewClient -
-func NewClient(timeout time.Duration) Client {
+func NewClient(timeout time.Duration, interval time.Duration) Client {
 	return Client{
 		httpClient: http.Client{
 			Timeout: timeout,
 		},
+		cache: pokecache.NewCache(interval),
 	}
 }
 
@@ -26,24 +28,34 @@ func (c *Client) ListLocationAreas(pageURL *string) (LocationAreas, error) {
 	if pageURL != nil {
 		url = *pageURL
 	}
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return LocationAreas{}, err
-	}
 
-	res, err := c.httpClient.Do(req)
-	if err != nil {
-		return LocationAreas{}, err
-	}
-	defer res.Body.Close()
+	val, ok := c.cache.Get(url)
 
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		return LocationAreas{}, err
+	data := []byte{}
+
+	if ok == true {
+		data = val
+	} else {
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return LocationAreas{}, err
+		}
+
+		res, err := c.httpClient.Do(req)
+		if err != nil {
+			return LocationAreas{}, err
+		}
+		defer res.Body.Close()
+
+		data, err = io.ReadAll(res.Body)
+		if err != nil {
+			return LocationAreas{}, err
+		}
+		c.cache.Add(url, data)
 	}
 
 	LocationAreasList := LocationAreas{}
-	err = json.Unmarshal(data, &LocationAreasList)
+	err := json.Unmarshal(data, &LocationAreasList)
 	if err != nil {
 		return LocationAreas{}, err
 	}

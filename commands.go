@@ -23,7 +23,6 @@ func commandHelp(cfg *config) error {
 
 func commandMap(cfg *config) error {
 	res, err := cfg.pokeapiClient.ListLocationAreas(cfg.next)
-	fmt.Println("results:", res)
 	if err != nil {
 		return err
 	}
