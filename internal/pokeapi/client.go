@@ -64,35 +64,39 @@ func (c *Client) ListLocationAreas(pageURL *string) (LocationAreas, error) {
 	return LocationAreasList, nil
 }
 
-func (c *Client) ListPokemon(area_name string) (PokemonEncountersType, error) { //name
+func (c *Client) ListPokemon(area_name string) (PokemonEncountersType, error) {
 	url := baseURL + "/location-area/" + area_name
 
-	// if name != nil {
-	// 	url = *name
-	// }
+	val, ok := c.cache.Get(url)
 
-	fmt.Printf("\nExploring %s...\nFound Pokemon:", area_name)
+	data := []byte{}
 
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return PokemonEncountersType{}, err
-	}
-	res, err := c.httpClient.Do(req)
-	if err != nil {
-		return PokemonEncountersType{}, err
-	}
-	defer res.Body.Close()
+	if ok == true {
+		data = val
+	} else {
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return PokemonEncountersType{}, err
+		}
+		res, err := c.httpClient.Do(req)
+		if err != nil {
+			return PokemonEncountersType{}, err
+		}
+		defer res.Body.Close()
 
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		return PokemonEncountersType{}, err
+		data, err = io.ReadAll(res.Body)
+		if err != nil {
+			return PokemonEncountersType{}, err
+		}
+		c.cache.Add(url, data)
 	}
 
 	PokemonList := PokemonEncountersType{}
-	err = json.Unmarshal(data, &PokemonList)
+	err := json.Unmarshal(data, &PokemonList)
 	if err != nil {
 		return PokemonEncountersType{}, err
 	}
 
+	fmt.Printf("\nExploring %s...\nFound Pokemon:", area_name)
 	return PokemonList, nil
 }
