@@ -16,6 +16,7 @@ type config struct {
 	next          *string
 	prev          *string
 	pokeCache     pokecache.Cache
+	pokedex       map[string]pokeapi.Pokemon
 }
 
 func startRepl(cfg *config) error {
@@ -31,11 +32,11 @@ func startRepl(cfg *config) error {
 		}
 		cleanedInput := cleanInput(userInput)
 		command := cleanedInput[0]
-		parameter := "" // list
+		params := []string{}
 		if len(cleanedInput) > 1 {
-			parameter = cleanedInput[1]
+			params = cleanedInput[1:]
 		}
-		register(command, parameter, cfg)
+		register(cfg, command, params...)
 	}
 }
 
@@ -49,11 +50,11 @@ func cleanInput(text string) []string {
 	return wordsToLower
 }
 
-func register(command string, parameter string, cfg *config) {
+func register(cfg *config, command string, params ...string) {
 	unknown := true
 	for _, c := range cfg.commands {
 		if c.name == command {
-			c.callback(cfg, parameter)
+			c.callback(cfg, params...)
 			unknown = false
 			break
 		}
@@ -66,7 +67,7 @@ func register(command string, parameter string, cfg *config) {
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*config, string) error
+	callback    func(*config, ...string) error
 }
 
 func getCommands() map[string]cliCommand {
@@ -93,8 +94,18 @@ func getCommands() map[string]cliCommand {
 		},
 		"explore": {
 			name:        "explore",
-			description: "Display the names of all Pokémon found in that area.",
+			description: "Display the names of all Pokemon found in that area.",
 			callback:    commandExplore,
+		},
+		"catch": {
+			name:        "catch",
+			description: "Adds the Pokemon to the user's Pokedex.",
+			callback:    commandCatch,
+		},
+		"inpect": {
+			name:        "inspect",
+			description: "Prints the name, height, weight, stats and type(s) of the Pokemon.",
+			callback:    commandInspect,
 		},
 	}
 }
