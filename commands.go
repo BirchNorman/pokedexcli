@@ -88,11 +88,12 @@ func commandCatch(cfg *config, params ...string) error {
 		return nil
 	}
 
-	fmt.Printf("\nThrowing a Pokeball at %s...", PokemonName)
+	fmt.Printf("Throwing a Pokeball at %s...", PokemonName)
 	randomNumber := rand.Intn(PokemonInfo.BaseExperience)
 
 	if randomNumber < 40 {
 		fmt.Printf("\n%s was caught!", PokemonName)
+		fmt.Printf("\nYou may now inspect it with the inspect command.")
 		cfg.pokedex[PokemonName] = PokemonInfo
 	} else {
 		fmt.Printf("\n%s escaped!", PokemonName)
@@ -119,7 +120,7 @@ func commandInspect(cfg *config, params ...string) error {
 
 	fmt.Print("Stats:\n")
 	for _, Stat := range PokemonInfo.Stats {
-		fmt.Printf("  -%s: %d\n", Stat.Stat.Name, Stat.BaseStat)
+		fmt.Printf("  - %s: %d\n", Stat.Stat.Name, Stat.BaseStat)
 	}
 
 	fmt.Print("Types:\n")
@@ -127,5 +128,13 @@ func commandInspect(cfg *config, params ...string) error {
 		fmt.Printf("  - %s\n", Type.Type.Name)
 	}
 
+	return nil
+}
+
+func commandPokedex(cfg *config, params ...string) error {
+	fmt.Print("\nYour Pokedex:")
+	for PokemonName := range cfg.pokedex {
+		fmt.Printf("\n - %s", PokemonName)
+	}
 	return nil
 }
