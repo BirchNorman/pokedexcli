@@ -39,7 +39,8 @@ func commandMap(cfg *config, params ...string) error {
 
 func commandMapb(cfg *config, params ...string) error {
 	if cfg.prev == nil {
-		fmt.Println("you're on the first page")
+		fmt.Println("You're on the first page.")
+		return nil
 	}
 	res, err := cfg.pokeapiClient.ListLocationAreas(cfg.prev)
 	if err != nil {
@@ -120,7 +121,7 @@ func commandInspect(cfg *config, params ...string) error {
 
 	fmt.Print("Stats:\n")
 	for _, Stat := range PokemonInfo.Stats {
-		fmt.Printf("  - %s: %d\n", Stat.Stat.Name, Stat.BaseStat)
+		fmt.Printf("  -%s: %d\n", Stat.Stat.Name, Stat.BaseStat)
 	}
 
 	fmt.Print("Types:\n")
@@ -132,7 +133,7 @@ func commandInspect(cfg *config, params ...string) error {
 }
 
 func commandPokedex(cfg *config, params ...string) error {
-	fmt.Print("\nYour Pokedex:")
+	fmt.Print("Your Pokedex:")
 	for PokemonName := range cfg.pokedex {
 		fmt.Printf("\n - %s", PokemonName)
 	}
